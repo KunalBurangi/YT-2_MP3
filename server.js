@@ -34,26 +34,34 @@ const COOKIES_PATH = path.join(TEMP_DIR, 'cookies.txt');
 let hasCookies = false;
 
 if (process.env.YOUTUBE_COOKIES) {
+  console.log(`[Cookies Setup] Found YOUTUBE_COOKIES env var. Length: ${process.env.YOUTUBE_COOKIES.length} chars`);
   try {
     let cookieContent = process.env.YOUTUBE_COOKIES.trim();
+    const startsWithHash = cookieContent.startsWith('#');
+    console.log(`[Cookies Setup] Raw value starts with '#': ${startsWithHash}`);
+    
     // Auto-detect base64 encoding
-    if (!cookieContent.startsWith('#')) {
+    if (!startsWithHash) {
       try {
         const decoded = Buffer.from(cookieContent, 'base64').toString('utf-8');
+        console.log(`[Cookies Setup] Decoded string length: ${decoded.length} chars`);
         // Valid cookie files contain comments (#) or tab-delimited columns (\t) and multiple lines (\n)
         if (decoded.includes('\n') && (decoded.includes('\t') || decoded.includes('#'))) {
           cookieContent = decoded;
-          console.log('  ✓ Decoded YOUTUBE_COOKIES from base64');
+          console.log('  ✓ [Cookies Setup] Decoded YOUTUBE_COOKIES from base64');
+        } else {
+          console.log('  ✗ [Cookies Setup] Decoded string did not match cookie pattern, keeping raw');
         }
-      } catch {
-        // Fall back to raw text
+      } catch (err) {
+        console.error('  ✗ [Cookies Setup] Base64 decoding failed:', err.message);
       }
     }
+    
     fs.writeFileSync(COOKIES_PATH, cookieContent, 'utf-8');
-    console.log('  ✓ Successfully configured cookies.txt');
+    console.log(`  ✓ [Cookies Setup] Wrote ${cookieContent.length} bytes to ${COOKIES_PATH}`);
     hasCookies = true;
   } catch (err) {
-    console.error('  ✗ Failed to write YOUTUBE_COOKIES file:', err.message);
+    console.error('  ✗ [Cookies Setup] Failed to write YOUTUBE_COOKIES file:', err.message);
   }
 } else if (fs.existsSync(path.join(__dirname, 'cookies.txt'))) {
   try {
@@ -63,6 +71,8 @@ if (process.env.YOUTUBE_COOKIES) {
   } catch (err) {
     console.error('  ✗ Failed to copy local cookies.txt:', err.message);
   }
+} else {
+  console.log('[Cookies Setup] YOUTUBE_COOKIES env var NOT found and no local cookies.txt present');
 }
 
 function getYtdlpArgs(customArgs) {
