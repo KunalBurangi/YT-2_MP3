@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: yt-2-mp3-converter
+    runtime: docker
+    plan: free
+    envVars:
+      - key: PORT
+        value: 3000
