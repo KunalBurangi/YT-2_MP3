@@ -55,6 +55,8 @@ function getYtdlpArgs(customArgs) {
   const args = [...customArgs];
   if (hasCookies && fs.existsSync(COOKIES_PATH)) {
     args.push('--cookies', COOKIES_PATH);
+  } else {
+    args.push('--extractor-args', 'youtube:player_client=default,-android_sdkless');
   }
   return args;
 }
@@ -152,7 +154,6 @@ app.post('/api/info', (req, res) => {
     '--dump-json',
     '--no-playlist',
     '--no-warnings',
-    '--extractor-args', 'youtube:player_client=default,-android_sdkless',
     url
   ]));
 
@@ -219,7 +220,6 @@ app.post('/api/convert', (req, res) => {
     '--audio-quality', audioQuality,
     '--no-playlist',
     '--newline',
-    '--extractor-args', 'youtube:player_client=default,-android_sdkless',
     '-o', outputTemplate,
     url
   ]));
@@ -302,7 +302,6 @@ app.post('/api/convert', (req, res) => {
           '--dump-json',
           '--no-playlist',
           '--no-warnings',
-          '--extractor-args', 'youtube:player_client=default,-android_sdkless',
           url
         ]));
         let infoData = '';
