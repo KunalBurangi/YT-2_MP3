@@ -1,0 +1,17 @@
+{
+  "name": "yt-2-mp3",
+  "version": "1.0.0",
+  "description": "YouTube to MP3 converter with a premium glassmorphic UI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["youtube", "mp3", "converter"],
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "uuid": "^10.0.0"
+  }
+}
