@@ -40,7 +40,8 @@ if (process.env.YOUTUBE_COOKIES) {
     if (!cookieContent.startsWith('#')) {
       try {
         const decoded = Buffer.from(cookieContent, 'base64').toString('utf-8');
-        if (decoded.includes('# Netscape HTTP Cookie File')) {
+        // Valid cookie files contain comments (#) or tab-delimited columns (\t) and multiple lines (\n)
+        if (decoded.includes('\n') && (decoded.includes('\t') || decoded.includes('#'))) {
           cookieContent = decoded;
           console.log('  ✓ Decoded YOUTUBE_COOKIES from base64');
         }
