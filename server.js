@@ -35,8 +35,21 @@ let hasCookies = false;
 
 if (process.env.YOUTUBE_COOKIES) {
   try {
-    fs.writeFileSync(COOKIES_PATH, process.env.YOUTUBE_COOKIES, 'utf-8');
-    console.log('  ✓ Found YOUTUBE_COOKIES env var, wrote to cookies.txt');
+    let cookieContent = process.env.YOUTUBE_COOKIES.trim();
+    // Auto-detect base64 encoding
+    if (!cookieContent.startsWith('#')) {
+      try {
+        const decoded = Buffer.from(cookieContent, 'base64').toString('utf-8');
+        if (decoded.includes('# Netscape HTTP Cookie File')) {
+          cookieContent = decoded;
+          console.log('  ✓ Decoded YOUTUBE_COOKIES from base64');
+        }
+      } catch {
+        // Fall back to raw text
+      }
+    }
+    fs.writeFileSync(COOKIES_PATH, cookieContent, 'utf-8');
+    console.log('  ✓ Successfully configured cookies.txt');
     hasCookies = true;
   } catch (err) {
     console.error('  ✗ Failed to write YOUTUBE_COOKIES file:', err.message);
