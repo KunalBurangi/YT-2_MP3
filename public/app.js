@@ -539,4 +539,42 @@
   urlInput.value = '';
   urlInput.focus();
 
+  // Register Service Worker for PWA
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('ServiceWorker registered:', reg.scope))
+        .catch(err => console.error('ServiceWorker registration failed:', err));
+    });
+  }
+
+  // Parse Shared YouTube URL from Web Share Target API
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedText = urlParams.get('text') || '';
+    const sharedUrl = urlParams.get('url') || '';
+    const combined = `${sharedText} ${sharedUrl}`.trim();
+
+    if (combined) {
+      const ytUrlRegex = /(https?:\/\/[^\s]*youtube\.com[^\s]*|https?:\/\/[^\s]*youtu\.be[^\s]*)/i;
+      const match = combined.match(ytUrlRegex);
+      if (match) {
+        const extractedUrl = match[1];
+        urlInput.value = extractedUrl;
+
+        // Clear query params so refresh doesn't trigger conversion again
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        // Auto trigger conversion after UI settles
+        setTimeout(() => {
+          if (!convertBtn.disabled) {
+            convertBtn.click();
+          }
+        }, 400);
+      }
+    }
+  } catch (err) {
+    console.error('Error handling shared parameters:', err);
+  }
+
 })();

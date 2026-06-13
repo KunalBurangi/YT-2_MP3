@@ -122,6 +122,7 @@ app.post('/api/info', (req, res) => {
     '--dump-json',
     '--no-playlist',
     '--no-warnings',
+    '--extractor-args', 'youtube:player_client=default,-android_sdkless',
     url
   ]);
 
@@ -134,7 +135,7 @@ app.post('/api/info', (req, res) => {
   ytdlp.on('close', code => {
     if (code !== 0) {
       console.error('yt-dlp info error:', errorData);
-      return res.status(500).json({ error: 'Failed to fetch video info. Check the URL and try again.' });
+      return res.status(500).json({ error: `Failed to fetch video info: ${errorData.trim() || 'Unknown error'}` });
     }
 
     try {
@@ -188,6 +189,7 @@ app.post('/api/convert', (req, res) => {
     '--audio-quality', audioQuality,
     '--no-playlist',
     '--newline',
+    '--extractor-args', 'youtube:player_client=default,-android_sdkless',
     '-o', outputTemplate,
     url
   ]);
@@ -266,7 +268,13 @@ app.post('/api/convert', (req, res) => {
 
       // Try to read title from yt-dlp metadata
       try {
-        const infoResult = spawn('yt-dlp', ['--dump-json', '--no-playlist', '--no-warnings', url]);
+        const infoResult = spawn('yt-dlp', [
+          '--dump-json',
+          '--no-playlist',
+          '--no-warnings',
+          '--extractor-args', 'youtube:player_client=default,-android_sdkless',
+          url
+        ]);
         let infoData = '';
         infoResult.stdout.on('data', d => infoData += d);
         infoResult.on('close', () => {
