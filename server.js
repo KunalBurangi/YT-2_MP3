@@ -151,6 +151,7 @@ app.post('/api/info', (req, res) => {
   }
 
   const ytdlp = spawn('yt-dlp', getYtdlpArgs([
+    '-v',
     '--dump-json',
     '--no-playlist',
     '--no-warnings',
