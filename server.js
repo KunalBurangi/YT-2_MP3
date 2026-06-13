@@ -29,6 +29,36 @@ if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
 
+// ─── Cookies configuration ───────────────────────────────────────────────────
+const COOKIES_PATH = path.join(TEMP_DIR, 'cookies.txt');
+let hasCookies = false;
+
+if (process.env.YOUTUBE_COOKIES) {
+  try {
+    fs.writeFileSync(COOKIES_PATH, process.env.YOUTUBE_COOKIES, 'utf-8');
+    console.log('  ✓ Found YOUTUBE_COOKIES env var, wrote to cookies.txt');
+    hasCookies = true;
+  } catch (err) {
+    console.error('  ✗ Failed to write YOUTUBE_COOKIES file:', err.message);
+  }
+} else if (fs.existsSync(path.join(__dirname, 'cookies.txt'))) {
+  try {
+    fs.copyFileSync(path.join(__dirname, 'cookies.txt'), COOKIES_PATH);
+    console.log('  ✓ Found local cookies.txt');
+    hasCookies = true;
+  } catch (err) {
+    console.error('  ✗ Failed to copy local cookies.txt:', err.message);
+  }
+}
+
+function getYtdlpArgs(customArgs) {
+  const args = [...customArgs];
+  if (hasCookies && fs.existsSync(COOKIES_PATH)) {
+    args.push('--cookies', COOKIES_PATH);
+  }
+  return args;
+}
+
 // In-memory job store
 const jobs = new Map();
 
@@ -118,13 +148,13 @@ app.post('/api/info', (req, res) => {
     return res.status(400).json({ error: 'Invalid YouTube URL' });
   }
 
-  const ytdlp = spawn('yt-dlp', [
+  const ytdlp = spawn('yt-dlp', getYtdlpArgs([
     '--dump-json',
     '--no-playlist',
     '--no-warnings',
     '--extractor-args', 'youtube:player_client=default,-android_sdkless',
     url
-  ]);
+  ]));
 
   let data = '';
   let errorData = '';
@@ -183,7 +213,7 @@ app.post('/api/convert', (req, res) => {
 
   // Start conversion in background
   // Note: yt-dlp sends progress & status info to stderr, not stdout
-  const ytdlp = spawn('yt-dlp', [
+  const ytdlp = spawn('yt-dlp', getYtdlpArgs([
     '-x',
     '--audio-format', 'mp3',
     '--audio-quality', audioQuality,
@@ -192,7 +222,7 @@ app.post('/api/convert', (req, res) => {
     '--extractor-args', 'youtube:player_client=default,-android_sdkless',
     '-o', outputTemplate,
     url
-  ]);
+  ]));
 
   let title = '';
 
@@ -268,13 +298,13 @@ app.post('/api/convert', (req, res) => {
 
       // Try to read title from yt-dlp metadata
       try {
-        const infoResult = spawn('yt-dlp', [
+        const infoResult = spawn('yt-dlp', getYtdlpArgs([
           '--dump-json',
           '--no-playlist',
           '--no-warnings',
           '--extractor-args', 'youtube:player_client=default,-android_sdkless',
           url
-        ]);
+        ]));
         let infoData = '';
         infoResult.stdout.on('data', d => infoData += d);
         infoResult.on('close', () => {
