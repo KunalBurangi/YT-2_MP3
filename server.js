@@ -98,7 +98,7 @@ function checkDependency(cmd, name) {
     console.log(`  ✓ ${name} found`);
     return true;
   } catch {
-    console.error(`  ✗ ${name} not found. Install it: https://github.com/${name === 'yt-dlp' ? 'yt-dlp/yt-dlp' : 'FFmpeg/FFmpeg'}`);
+    console.error(`  ✗ ${name} not found`);
     return false;
   }
 }
@@ -106,11 +106,14 @@ function checkDependency(cmd, name) {
 console.log('\n🔍 Checking dependencies...');
 const hasYtdlp = checkDependency('yt-dlp', 'yt-dlp');
 const hasFfmpeg = checkDependency('ffmpeg', 'ffmpeg');
+const hasZip = checkDependency('zip', 'zip');
 
-if (!hasYtdlp || !hasFfmpeg) {
-  console.error('\n⚠️  Missing dependencies. The app will start but conversions will fail.');
-  console.error('   Install yt-dlp:  brew install yt-dlp   (or pip install yt-dlp)');
-  console.error('   Install ffmpeg:  brew install ffmpeg\n');
+if (!hasYtdlp || !hasFfmpeg || !hasZip) {
+  console.error('\n⚠️  Missing dependencies. Some features may fail.');
+  if (!hasYtdlp) console.error('   Install yt-dlp:  brew install yt-dlp   (or pip install yt-dlp)');
+  if (!hasFfmpeg) console.error('   Install ffmpeg:  brew install ffmpeg');
+  if (!hasZip) console.error('   Install zip:     brew install zip      (or apt-get install zip)');
+  console.log();
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -553,6 +556,7 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     ytdlp: hasYtdlp,
     ffmpeg: hasFfmpeg,
+    zip: hasZip,
     activeJobs: jobs.size
   });
 });

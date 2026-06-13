@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     python3 \
     curl \
+    zip \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
